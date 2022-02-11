@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <Adafruit_SleepyDog.h>
+#include <Tic.h>
 
 // Project Includes
 #include "Version.h"
@@ -18,6 +19,9 @@ Bounce bounce = Bounce();
 // SET A VARIABLE TO STORE THE LED STATE
 int ledState = LOW;
 
+// Instantiate Motor Controller Object
+TicI2C motor;
+
 // ███████╗███████╗████████╗██╗   ██╗██████╗
 // ██╔════╝██╔════╝╚══██╔══╝██║   ██║██╔══██╗
 // ███████╗█████╗     ██║   ██║   ██║██████╔╝
@@ -34,7 +38,7 @@ void setup()
   }
   Serial.printf("\nProject version v%s, built %s\n", VERSION, BUILD_TIMESTAMP);
   Serial.println("Setup function commencing...");
-  vsAudioSetup();
+  //vsAudioSetup();
   delay(100);
   radioSetup();
 
@@ -52,6 +56,11 @@ void setup()
   // LED SETUP
   pinMode(LED_PIN, OUTPUT);
   digitalWrite(LED_PIN, ledState);
+
+  // Motor Setup
+  Wire.begin();
+  delay(20);
+  motor.exitSafeStart();
 
   Watchdog.enable(4000);
   Serial.println("Setup Complete");
@@ -80,12 +89,12 @@ void loop()
     {
       ledState = !ledState;            // SET ledState TO THE OPPOSITE OF ledState
       digitalWrite(LED_PIN, ledState); // WRITE THE NEW ledState
-      startAudio();
-      delay(1000);
-      stopAudio();
+      // startAudio();
+      // delay(1000);
+      // stopAudio();
       sendGoEvent(1); // Does not work inside VS1053 audio startPlayingFile!
     }
   }
-
+  motor.resetCommandTimeout();
   Watchdog.reset();
 }
