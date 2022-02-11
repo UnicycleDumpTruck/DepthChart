@@ -1,4 +1,2 @@
-# SoundPlayerRFM69
-Basic Template for Sound and RFM69 radio enabled projects
-
-I created this because I often use this combination of hardware.
+# Depth Chart Play Interactive
+Read pulses from a quadrature encoder setup on a handwheel, translate into commands for stepper motor. Limit switches at either end, and one in the middle for position calibration after powerup.
