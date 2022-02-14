@@ -89,7 +89,7 @@ void loop()
     {
       //ledState = !ledState;            // SET ledState TO THE OPPOSITE OF ledState
       digitalWrite(LED_PIN, HIGH); // WRITE THE NEW ledState
-      motor.setTargetVelocity(2000000);
+      motor.setTargetVelocity(20000000);
       // startAudio(); // Don't send radio envent while audio is playing!
       // delay(1000);
       // stopAudio();
@@ -98,7 +98,7 @@ void loop()
     else if (debouncedInput == HIGH)
     {
       digitalWrite(LED_PIN, LOW); // WRITE THE NEW ledState
-      motor.setTargetVelocity(-2000000);
+      motor.setTargetVelocity(-20000000);
     }
   }
   motor.resetCommandTimeout();
