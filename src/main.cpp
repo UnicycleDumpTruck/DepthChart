@@ -83,16 +83,22 @@ void loop()
   {
     // THE STATE OF THE INPUT CHANGED
     // GET THE STATE
-    int deboucedInput = bounce.read();
+    int debouncedInput = bounce.read();
     // IF THE CHANGED VALUE IS LOW
-    if (deboucedInput == LOW)
+    if (debouncedInput == LOW)
     {
-      ledState = !ledState;            // SET ledState TO THE OPPOSITE OF ledState
-      digitalWrite(LED_PIN, ledState); // WRITE THE NEW ledState
-      // startAudio();
+      //ledState = !ledState;            // SET ledState TO THE OPPOSITE OF ledState
+      digitalWrite(LED_PIN, HIGH); // WRITE THE NEW ledState
+      motor.setTargetVelocity(2000000);
+      // startAudio(); // Don't send radio envent while audio is playing!
       // delay(1000);
       // stopAudio();
       sendGoEvent(1); // Does not work inside VS1053 audio startPlayingFile!
+    }
+    else if (debouncedInput == HIGH)
+    {
+      digitalWrite(LED_PIN, LOW); // WRITE THE NEW ledState
+      motor.setTargetVelocity(-2000000);
     }
   }
   motor.resetCommandTimeout();
