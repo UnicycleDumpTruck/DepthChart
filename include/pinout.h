@@ -19,4 +19,8 @@
 #define BOUNCE_PIN A0
 #define LED_PIN 13
 
+// Shaft Encoder Pins
+#define ENCODER_A 12
+#define ENCODER_B 11
+
 #endif

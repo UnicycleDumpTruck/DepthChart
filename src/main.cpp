@@ -13,6 +13,10 @@
 // https://github.com/thomasfredericks/Bounce2
 #include <Bounce2.h>
 
+// Library to read rotary shaft encoder (for user input, not attached to motor)
+#define ENCODER_OPTIMIZE_INTERRUPTS
+#include <Encoder.h>
+
 // INSTANTIATE A Bounce OBJECT
 Bounce bounce = Bounce();
 
@@ -21,6 +25,11 @@ int ledState = LOW;
 
 // Instantiate Motor Controller Object
 TicI2C motor;
+
+// Encoder Setup
+Encoder shaftEncoder(ENCODER_A, ENCODER_B);
+// Last position of rotary shaft encoder for user input
+long oldPosition = -999;
 
 // ███████╗███████╗████████╗██╗   ██╗██████╗
 // ██╔════╝██╔════╝╚══██╔══╝██║   ██║██╔══██╗
@@ -62,6 +71,8 @@ void setup()
   delay(20);
   motor.exitSafeStart();
 
+
+
   Watchdog.enable(4000);
   Serial.println("Setup Complete");
 }
@@ -101,6 +112,15 @@ void loop()
       motor.setTargetVelocity(-20000000);
     }
   }
+
+  long newPosition = shaftEncoder.read();
+  //Serial.println(newPosition);
+  if (newPosition != oldPosition)
+  {
+    oldPosition = newPosition;
+    Serial.println(newPosition);
+  }
+
   motor.resetCommandTimeout();
   Watchdog.reset();
 }
