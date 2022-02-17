@@ -30,6 +30,7 @@ TicI2C motor;
 Encoder shaftEncoder(ENCODER_A, ENCODER_B);
 // Last position of rotary shaft encoder for user input
 long oldPosition = -999;
+long lastChangeTime = 0;
 
 // ███████╗███████╗████████╗██╗   ██╗██████╗
 // ██╔════╝██╔════╝╚══██╔══╝██║   ██║██╔══██╗
@@ -117,8 +118,25 @@ void loop()
   //Serial.println(newPosition);
   if (newPosition != oldPosition)
   {
+    long interval = millis() - lastChangeTime;
+    //Serial.println();
+    lastChangeTime = millis();
+    if (newPosition > oldPosition)
+    {
+      //Serial.println(F("Surfacing"));
+      motor.setTargetVelocity(int(50 / interval) * -5000000);
+    }
+    else
+    {
+      //Serial.println(F("Diving"));
+      motor.setTargetVelocity(int(50 / interval) * 5000000);
+    }
     oldPosition = newPosition;
-    Serial.println(newPosition);
+    //Serial.println(newPosition);
+  }
+  else
+  {
+    motor.setTargetVelocity(0);
   }
 
   motor.resetCommandTimeout();
