@@ -31,6 +31,27 @@ Encoder shaftEncoder(ENCODER_A, ENCODER_B);
 // Last position of rotary shaft encoder for user input
 long oldPosition = -999;
 long lastChangeTime = 0;
+#define ENCODER_BUFFER_SIZE 3
+long encBuffer[ENCODER_BUFFER_SIZE];
+int bufPos = 0;
+
+long avgInterval(long interval)
+{
+  encBuffer[bufPos] = interval;
+  bufPos++;
+  if (ENCODER_BUFFER_SIZE <= bufPos)
+  {
+    bufPos = 0;
+  }
+  long sum = 0;
+  for (int i=0; i<ENCODER_BUFFER_SIZE; i++)
+  {
+    sum = sum + encBuffer[i];
+  }
+  long avg = long(sum / ENCODER_BUFFER_SIZE);
+  return avg;
+}
+
 
 // ███████╗███████╗████████╗██╗   ██╗██████╗
 // ██╔════╝██╔════╝╚══██╔══╝██║   ██║██╔══██╗
@@ -42,10 +63,10 @@ long lastChangeTime = 0;
 void setup()
 {
   Serial.begin(9600);
-  while (!Serial)
-  {
-    ; // wait for serial port to connect. Needed for native USB port only
-  }
+  // while (!Serial)
+  // {
+  //   ; // wait for serial port to connect. Needed for native USB port only
+  // }
   Serial.printf("\nProject version v%s, built %s\n", VERSION, BUILD_TIMESTAMP);
   Serial.println("Setup function commencing...");
   //vsAudioSetup();
@@ -71,7 +92,7 @@ void setup()
   Wire.begin();
   delay(20);
   motor.exitSafeStart();
-
+  motor.goHomeReverse();
 
 
   Watchdog.enable(4000);
@@ -87,56 +108,45 @@ void setup()
 
 void loop()
 {
-  // Update the Bounce instance (YOU MUST DO THIS EVERY LOOP)
-  bounce.update();
-
-  // <Bounce>.changed() RETURNS true IF THE STATE CHANGED (FROM HIGH TO LOW OR LOW TO HIGH)
-  if (bounce.changed())
-  {
-    // THE STATE OF THE INPUT CHANGED
-    // GET THE STATE
-    int debouncedInput = bounce.read();
-    // IF THE CHANGED VALUE IS LOW
-    if (debouncedInput == LOW)
-    {
-      //ledState = !ledState;            // SET ledState TO THE OPPOSITE OF ledState
-      digitalWrite(LED_PIN, HIGH); // WRITE THE NEW ledState
-      motor.setTargetVelocity(20000000);
-      // startAudio(); // Don't send radio envent while audio is playing!
-      // delay(1000);
-      // stopAudio();
-      sendGoEvent(1); // Does not work inside VS1053 audio startPlayingFile!
-    }
-    else if (debouncedInput == HIGH)
-    {
-      digitalWrite(LED_PIN, LOW); // WRITE THE NEW ledState
-      motor.setTargetVelocity(-20000000);
-    }
-  }
-
   long newPosition = shaftEncoder.read();
   //Serial.println(newPosition);
   if (newPosition != oldPosition)
   {
-    long interval = millis() - lastChangeTime;
-    //Serial.println();
+    long interval = avgInterval(millis() - lastChangeTime);
+    // Serial.print("Interval: ");
+    // Serial.print(interval);
     lastChangeTime = millis();
     if (newPosition > oldPosition)
     {
       //Serial.println(F("Surfacing"));
-      motor.setTargetVelocity(int(50 / interval) * -5000000);
+      long speed = int((1000 / interval) * -5000000);
+      motor.setTargetVelocity(speed);
+      // Serial.print("Tgt Speed: ");
+      // Serial.println(speed);
     }
     else
     {
       //Serial.println(F("Diving"));
-      motor.setTargetVelocity(int(50 / interval) * 5000000);
+      long speed = int((1000 / interval) * 5000000);
+      motor.setTargetVelocity(speed);
+      // Serial.print("Tgt Speed: ");
+      // Serial.println(speed);
     }
     oldPosition = newPosition;
-    //Serial.println(newPosition);
+    // Serial.print("Cur Speed: ");
+    // Serial.print(motor.getCurrentVelocity());
+    // Serial.print(" Position: ");
+    // Serial.println(motor.getCurrentPosition());
   }
   else
   {
-    motor.setTargetVelocity(0);
+    long idleTime = millis() - lastChangeTime;
+    if (idleTime > 200)
+    {
+      motor.setTargetVelocity(0);
+      //Serial.println("------------------------------Stopped---------------------------");
+    }
+    
   }
 
   motor.resetCommandTimeout();
